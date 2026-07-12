@@ -1,0 +1,176 @@
+@import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;700&display=swap");
+@import url("https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================================================================
+   THEME TOKENS — carried over from the original StudyBody design.
+=================================================================== */
+:root {
+  --text-primary: #1f2d2d;
+  --text-secondary: #5a6b6b;
+  --text-tertiary: #8fa0a0;
+  --border-secondary: #e5eaea;
+  --border-tertiary: #edf1f1;
+  --bg-secondary: #f2f6f6;
+  --surface-primary: #ffffff;
+  --surface-secondary: #f9f9f9;
+  --input-bg: #eef2f2;
+  --input-border: #b8c2c2;
+  --msg-bot-bg: #e2fdff;
+  --msg-bot-text: #1f2d2d;
+  --active-bg: #eaf2ff;
+  --shadow: rgba(0, 0, 0, 0.06);
+
+  --brand: #5465ff;
+  --brand-deep: #3b4cd9;
+  --brand-soft: #9bb1ff;
+  --brand-pale: #bfd7ff;
+  --accent: #e2fdff;
+
+  --ok: #0f6e56;
+  --bad: #a32d2d;
+}
+
+[data-theme="dark"] {
+  --text-primary: #edeff2;
+  --text-secondary: #aeb6c2;
+  --text-tertiary: #7a828e;
+  --border-secondary: #2b2f3a;
+  --border-tertiary: #23262f;
+  --bg-secondary: #20232c;
+  --surface-primary: #181a21;
+  --surface-secondary: #14161c;
+  --input-bg: #20232c;
+  --input-border: #3a3f4b;
+  --msg-bot-bg: #1b2f38;
+  --msg-bot-text: #dceef2;
+  --active-bg: #20263d;
+  --shadow: rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: "Tajawal", "Inter", "Segoe UI", sans-serif;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+/* Latin text reads better in Inter; Tajawal handles Arabic. */
+html[lang="en"] body {
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* ===================================================================
+   COMPONENT CLASSES
+   Uses CSS *logical* properties (inline-start/end, margin-inline)
+   rather than left/right, so the entire layout mirrors automatically
+   when dir="rtl" — no duplicate RTL stylesheet needed.
+=================================================================== */
+@layer components {
+  .card {
+    @apply rounded-2xl border p-5;
+    background: var(--surface-primary);
+    border-color: var(--border-secondary);
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .btn-primary {
+    @apply rounded-xl px-5 py-3 text-sm font-bold text-white transition;
+    background: var(--brand);
+    box-shadow: 0 4px 12px rgba(84, 101, 255, 0.28);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--brand-deep);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+  .btn-primary:disabled {
+    background: var(--brand-pale);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-ghost {
+    @apply rounded-xl px-4 py-2 text-sm font-medium transition;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-secondary);
+    background: var(--surface-primary);
+  }
+  .btn-ghost:hover {
+    color: var(--text-primary);
+    border-color: var(--brand-soft);
+  }
+
+  .field-input {
+    @apply w-full rounded-xl px-3 py-2.5 text-sm outline-none transition;
+    background: var(--input-bg);
+    border: 1.5px solid var(--input-border);
+    color: var(--text-primary);
+    font-family: inherit;
+  }
+  .field-input:hover {
+    border-color: var(--brand-soft);
+  }
+  .field-input:focus {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px var(--brand-pale);
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-xs font-medium;
+    color: var(--text-secondary);
+  }
+
+  .page-title {
+    @apply text-lg font-bold;
+    color: var(--text-primary);
+  }
+  .page-sub {
+    @apply mb-5 mt-1 text-sm;
+    color: var(--text-secondary);
+  }
+}
+
+/* Visible keyboard focus everywhere. */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Scrollbars that don't fight the dark theme. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
