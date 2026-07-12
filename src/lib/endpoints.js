@@ -38,6 +38,16 @@ export const HISTORY = {
     env.VITE_N8N_HISTORY_URL || "http://localhost:5678/webhook/user-history",
 };
 
+/* ---------- General assistant (n8n) ---------- */
+export const ASSISTANT = {
+  // POST { message, session_id } -> { output }
+  // The open-ended chat on the landing page. Not tied to a lesson, and
+  // separate from STUDY.CHAT_URL, which answers about a specific lesson.
+  CHAT_URL:
+    env.VITE_N8N_ASSISTANT_URL ||
+    "https://primary-production-ba251.up.railway.app/webhook/assist",
+};
+
 /* ---------- Study features (n8n) ---------- */
 export const STUDY = {
   // POST { lesson_id, session_id } -> { questions: [...] }

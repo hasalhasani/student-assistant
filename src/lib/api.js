@@ -1,6 +1,7 @@
 import {
   AUTH,
   HISTORY,
+  ASSISTANT,
   STUDY,
   PLANNER,
   USE_MOCKS,
@@ -22,14 +23,17 @@ import { logCall } from "./webhookLog";
 /**
  * Run one backend call.
  *
- * @param name    Human label, shown in the dev panel.
- * @param url     The configured endpoint.
- * @param payload What we'd POST.
- * @param mockFn  Async fallback used when mocking or unconfigured.
- * @param token   Optional bearer token.
+ * @param name      Human label, shown in the dev panel.
+ * @param url       The configured endpoint.
+ * @param payload   What we'd POST.
+ * @param mockFn    Async fallback used when mocking or unconfigured.
+ * @param token     Optional bearer token.
+ * @param forceReal Skip mocking entirely — always hit the network, even
+ *                  when USE_MOCKS is on. For endpoints that have a live
+ *                  backend and no mock to fall back to.
  */
-async function call({ name, url, payload, mockFn, token }) {
-  const mocked = USE_MOCKS || !isConfigured(url);
+async function call({ name, url, payload, mockFn, token, forceReal }) {
+  const mocked = !forceReal && (USE_MOCKS || !isConfigured(url));
   const entry = logCall({ name, url, payload, mocked });
 
   try {
@@ -37,6 +41,7 @@ async function call({ name, url, payload, mockFn, token }) {
     if (mocked) {
       result = await mockFn();
     } else {
+      if (!url) throw new Error(`No URL configured for ${name}`);
       const res = await fetch(url, {
         method: "POST",
         headers: {
@@ -122,6 +127,27 @@ export function loadUserHistory({ userId, token }) {
     payload: { user_id: userId },
     token,
     mockFn: () => mock.mockUserHistory(),
+  });
+}
+
+/* ---------- General assistant ---------- */
+
+/**
+ * The open-ended chat on the landing page.
+ *
+ * Unlike study.chat, this carries no lesson context — it's a general
+ * assistant. It also has NO MOCK: forceReal makes it hit the network
+ * even while USE_MOCKS is on, because a live n8n workflow is attached.
+ * If the webhook isn't reachable, the page shows the error rather than
+ * pretending to work.
+ */
+export function sendAssistantMessage({ message, sessionId, token }) {
+  return call({
+    name: "assistant.chat",
+    url: ASSISTANT.CHAT_URL,
+    payload: { message, session_id: sessionId },
+    token,
+    forceReal: true,
   });
 }
 

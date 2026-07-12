@@ -6,6 +6,7 @@ import { USE_MOCKS } from "./lib/endpoints";
 import DevPanel from "./components/DevPanel";
 
 // One chunk per feature — fetched on first visit, not on load.
+const Assistant = lazy(() => import("./pages/Assistant"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const Flashcards = lazy(() => import("./pages/Flashcards"));
@@ -18,6 +19,9 @@ const NAV = [
   {
     section: "nav.section_study",
     items: [
+      // The general assistant — the landing page.
+      { id: "assistant", icon: "ti-sparkles", label: "nav.assistant" },
+      // Sirāj — the lesson-bound tutor. Same idea, different scope.
       { id: "chat", icon: "ti-message-circle-2", label: "nav.chat" },
       { id: "quiz", icon: "ti-list-check", label: "nav.mcq" },
       { id: "flashcards", icon: "ti-cards", label: "nav.flashcards" },
@@ -35,7 +39,7 @@ const NAV = [
 
 function Loading() {
   return (
-    <div className="flex items-center justify-center py-16">
+    <div className="flex h-full flex-1 items-center justify-center py-16">
       <span
         className="h-5 w-5 animate-spin rounded-full border-2"
         style={{
@@ -52,7 +56,7 @@ export default function App() {
   const { user, signOut, isGuest, history, historyLoading } = useAuth();
   const { plan, setPlan } = useStudy();
 
-  const [page, setPage] = useState("chat"); // chat is the landing page
+  const [page, setPage] = useState("assistant"); // the general chat is the landing page
   const [theme, setTheme] = useState("light");
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -81,6 +85,7 @@ export default function App() {
   }
 
   const PAGES = {
+    assistant: <Assistant />,
     chat: <Chat />,
     quiz: <Quiz />,
     flashcards: <Flashcards />,
@@ -236,7 +241,16 @@ export default function App() {
         </aside>
 
         {/* ---------- main ---------- */}
-        <main className="flex-1 overflow-y-auto p-6 pb-14">
+        {/* ---------- main ----------
+            Chat pages manage their own scrolling, so they get a fixed-height
+            flex container instead of the page-level overflow used elsewhere. */}
+        <main
+          className={
+            page === "assistant" || page === "chat"
+              ? "flex flex-1 flex-col overflow-hidden p-6 pb-14"
+              : "flex-1 overflow-y-auto p-6 pb-14"
+          }
+        >
           <Suspense fallback={<Loading />}>{PAGES[page]}</Suspense>
         </main>
       </div>

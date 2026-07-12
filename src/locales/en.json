@@ -4,9 +4,10 @@
     "tagline": "Your AI study companion"
   },
   "nav": {
+    "assistant": "Assistant",
     "section_study": "Study",
     "section_plan": "Planning",
-    "chat": "Chat",
+    "chat": "Sirāj (lesson)",
     "mcq": "Quiz",
     "flashcards": "Flashcards",
     "dashboard": "Dashboard",
@@ -128,5 +129,16 @@
     "streak": "Day streak",
     "sessions": "Sessions",
     "questions": "Questions"
+  },
+  "assistant": {
+    "welcome": "How can I help?",
+    "welcome_sub": "Ask me anything. For questions about a specific lesson, try Sirāj in the sidebar.",
+    "placeholder": "Send a message...",
+    "s1": "Explain photosynthesis simply",
+    "s2": "Help me plan my week",
+    "s3": "Give me a study tip",
+    "err_send": "Couldn't reach the assistant.",
+    "err_empty": "The assistant returned an empty reply.",
+    "not_configured": "Assistant webhook not configured — set VITE_N8N_ASSISTANT_URL."
   }
 }
