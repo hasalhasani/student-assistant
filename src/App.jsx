@@ -6,7 +6,7 @@ import { USE_MOCKS } from "./lib/endpoints";
 import DevPanel from "./components/DevPanel";
 
 // One chunk per feature — fetched on first visit, not on load.
-const Assistant = lazy(() => import("./pages/assistant"));
+const Assistant = lazy(() => import("./pages/Assistant"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const Flashcards = lazy(() => import("./pages/Flashcards"));
