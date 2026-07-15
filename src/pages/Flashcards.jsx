@@ -6,7 +6,7 @@ import * as api from "../lib/api";
 import LessonPicker from "../components/LessonPicker";
 
 export default function Flashcards() {
-  const { t, pick } = useI18n();
+  const { t, lang, pick } = useI18n();
   const { token } = useAuth();
   const { lesson, sessionId } = useStudy();
 
@@ -18,9 +18,11 @@ export default function Flashcards() {
 
   const start = async () => {
     setLoading(true);
+    await api.ensureSession({ sessionId, lessonId: lesson.id, mode: "flashcard" });
     const data = await api.generateFlashcards({
       lessonId: lesson.id,
       sessionId,
+      lang,
       token,
     });
     setCards(data.questions || []);

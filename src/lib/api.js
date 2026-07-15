@@ -4,6 +4,7 @@ import {
   ASSISTANT,
   STUDY,
   PLANNER,
+  SUPABASE,
   USE_MOCKS,
   isConfigured,
 } from "./endpoints";
@@ -151,35 +152,109 @@ export function sendAssistantMessage({ message, sessionId, token }) {
   });
 }
 
-/* ---------- Content ---------- */
+/* ---------- Content (Supabase) ---------- */
 
-export async function fetchSubjects() {
-  await wait(250);
-  return mock.mockSubjects;
+/*
+  Subjects and lessons come straight from Supabase, not n8n or mocks —
+  same as the original vanilla-JS prototype. USE_MOCKS is intentionally
+  NOT checked here: if Supabase is configured, always use it, since
+  there's no meaningful "mock database" to demo against once real
+  content exists. Falls back to mock data only if Supabase isn't
+  configured at all, so the UI stays clickable before the DB is wired.
+*/
+
+async function supabaseSelect(table, query) {
+  const url = `${SUPABASE.URL}/rest/v1/${table}?${query}`;
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE.ANON_KEY,
+      Authorization: `Bearer ${SUPABASE.ANON_KEY}`,
+    },
+  });
+  if (!res.ok) throw new Error(`Supabase ${table} fetch failed (${res.status})`);
+  return res.json();
 }
 
-export async function fetchLessons(subjectId) {
-  await wait(250);
-  return mock.mockLessons[subjectId] || [];
+function supabaseConfigured() {
+  return Boolean(SUPABASE.URL) && Boolean(SUPABASE.ANON_KEY);
+}
+
+/**
+ * Upsert a row into study_sessions BEFORE any n8n workflow tries to
+ * insert into a table that has a foreign key on session_id (e.g.
+ * generated_items). Without this, those inserts fail with a foreign
+ * key violation, since nothing in study_sessions matches the session
+ * id yet. Ported from the original vanilla-JS prototype's
+ * ensureSession().
+ */
+export async function ensureSession({ sessionId, lessonId, mode }) {
+  if (!supabaseConfigured()) return;
+  const url = `${SUPABASE.URL}/rest/v1/study_sessions?on_conflict=id`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE.ANON_KEY,
+      Authorization: `Bearer ${SUPABASE.ANON_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify({ id: sessionId, lesson_id: lessonId, mode }),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`ensureSession failed (${res.status}) ${text}`);
+  }
+}
+
+export async function fetchSubjects(lang) {
+  if (!supabaseConfigured()) {
+    await wait(250);
+    return mock.mockSubjects;
+  }
+  const data = await supabaseSelect("subjects", "order=sort_order.asc");
+  return (data || []).map((s) => ({
+    id: s.id,
+    slug: s.slug,
+    name: lang === "en" ? s.name_en || s.name_ar : s.name_ar,
+    description: "",
+    icon: "book",
+    available: s.is_available,
+    soon: !s.is_available,
+  }));
+}
+
+export async function fetchLessons(subjectId, lang) {
+  if (!supabaseConfigured()) {
+    await wait(250);
+    return mock.mockLessons[subjectId] || [];
+  }
+  const data = await supabaseSelect(
+    "lessons",
+    `subject_id=eq.${subjectId}&is_available=eq.true&order=sort_order.asc`
+  );
+  return (data || []).map((l) => ({
+    id: l.id,
+    name: lang === "en" ? l.name_en || l.name_ar : l.name_ar,
+  }));
 }
 
 /* ---------- Study ---------- */
 
-export function generateMCQ({ lessonId, sessionId, token }) {
+export function generateMCQ({ lessonId, sessionId, lang, token }) {
   return call({
     name: "study.mcq",
     url: STUDY.MCQ_URL,
-    payload: { lesson_id: lessonId, session_id: sessionId },
+    payload: { lesson_id: lessonId, session_id: sessionId, lang },
     token,
     mockFn: mock.mockMCQ,
   });
 }
 
-export function generateFlashcards({ lessonId, sessionId, token }) {
+export function generateFlashcards({ lessonId, sessionId, lang, token }) {
   return call({
     name: "study.flashcards",
     url: STUDY.FLASHCARD_URL,
-    payload: { lesson_id: lessonId, session_id: sessionId },
+    payload: { lesson_id: lessonId, session_id: sessionId, lang },
     token,
     mockFn: mock.mockFlashcards,
   });
@@ -189,7 +264,7 @@ export function sendChatMessage({ input, sessionId, lang, token }) {
   return call({
     name: "study.chat",
     url: STUDY.CHAT_URL,
-    payload: { chatInput: input, session_id: sessionId },
+    payload: { chatInput: input, session_id: sessionId, lang },
     token,
     mockFn: () => mock.mockChat(input, lang),
   });
@@ -209,6 +284,7 @@ export function sendVoiceMessage({
       audio_base64: audioBase64,
       mime_type: mimeType,
       session_id: sessionId,
+      lang,
     },
     token,
     mockFn: () => mock.mockChat("[voice]", lang),
@@ -219,7 +295,7 @@ export function endSession({ sessionId, lang, token }) {
   return call({
     name: "study.end_session",
     url: STUDY.END_SESSION_URL,
-    payload: { session_id: sessionId },
+    payload: { session_id: sessionId, lang },
     token,
     mockFn: () => mock.mockSessionSummary(lang),
   });
@@ -238,5 +314,13 @@ export function generatePlan({ courses, hoursPerDay, days, token }) {
 }
 
 export function newSessionId() {
-  return `sess-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for environments without crypto.randomUUID (older Safari, non-HTTPS).
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }

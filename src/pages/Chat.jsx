@@ -144,7 +144,20 @@ export default function Chat() {
   };
 
   if (!started) {
-    return <LessonPicker onStart={() => setStarted(true)} />;
+    return (
+      <div className="h-full min-h-0 overflow-y-auto">
+        <LessonPicker
+          onStart={async () => {
+            await api.ensureSession({
+              sessionId,
+              lessonId: lesson?.id,
+              mode: "chatbot",
+            });
+            setStarted(true);
+          }}
+        />
+      </div>
+    );
   }
 
   const bubbleStyle = (role) => {
@@ -156,7 +169,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div
         className="mb-3 flex items-center justify-between border-b pb-3"
         style={{ borderColor: "var(--border-secondary)" }}
@@ -174,7 +187,10 @@ export default function Chat() {
         </button>
       </div>
 
-      <div ref={areaRef} className="flex-1 space-y-3 overflow-y-auto py-2">
+      <div
+        ref={areaRef}
+        className="min-h-0 flex-1 space-y-3 overflow-y-auto py-2"
+      >
         {messages.map((m, i) => (
           <div
             key={i}

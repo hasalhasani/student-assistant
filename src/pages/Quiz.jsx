@@ -6,7 +6,7 @@ import * as api from "../lib/api";
 import LessonPicker from "../components/LessonPicker";
 
 export default function Quiz() {
-  const { t, pick } = useI18n();
+  const { t, lang, pick } = useI18n();
   const { token } = useAuth();
   const { lesson, sessionId } = useStudy();
 
@@ -18,9 +18,11 @@ export default function Quiz() {
 
   const start = async () => {
     setLoading(true);
+    await api.ensureSession({ sessionId, lessonId: lesson.id, mode: "mcq" });
     const data = await api.generateMCQ({
       lessonId: lesson.id,
       sessionId,
+      lang,
       token,
     });
     setQuestions(data.questions || []);
@@ -113,7 +115,7 @@ export default function Quiz() {
 
   /* ---------- question ---------- */
   const q = questions[idx];
-  const options = pick(q.options);
+  const options = q.options;
   const progress = ((idx + 1) / questions.length) * 100;
 
   return (

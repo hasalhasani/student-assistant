@@ -9,26 +9,28 @@ import * as api from "../lib/api";
  * carries into the others.
  */
 export default function LessonPicker({ onStart, startLabel }) {
-  const { t, pick } = useI18n();
+  const { t, lang, pick } = useI18n();
   const { subject, lesson, selectSubject, selectLesson } = useStudy();
   const [subjects, setSubjects] = useState([]);
   const [lessons, setLessons] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Re-fetch whenever the language toggles, so names stay in sync.
   useEffect(() => {
-    api.fetchSubjects().then((s) => {
+    setLoading(true);
+    api.fetchSubjects(lang).then((s) => {
       setSubjects(s);
       setLoading(false);
     });
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     if (!subject) {
       setLessons([]);
       return;
     }
-    api.fetchLessons(subject.id).then(setLessons);
-  }, [subject]);
+    api.fetchLessons(subject.id, lang).then(setLessons);
+  }, [subject, lang]);
 
   if (loading) {
     return (
