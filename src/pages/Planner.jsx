@@ -6,7 +6,7 @@ import * as api from "../lib/api";
 
 const LEVELS = ["easy", "medium", "hard"];
 
-export default function Planner({ onDone }) {
+export default function Planner({ onDone, onHome }) {
   const { t } = useI18n();
   const { token } = useAuth();
   const { setPlan } = useStudy();
@@ -38,6 +38,15 @@ export default function Planner({ onDone }) {
 
   return (
     <div className="mx-auto max-w-2xl">
+      {onHome && (
+        <button
+          onClick={onHome}
+          className="btn-ghost mb-3 flex w-fit items-center gap-1.5 !px-3 !py-1.5 text-xs"
+        >
+          <i className="ti ti-home" aria-hidden="true" />
+          {t("nav.home")}
+        </button>
+      )}
       <h2 className="page-title">{t("planner.title")}</h2>
       <p className="page-sub">{t("planner.sub")}</p>
 

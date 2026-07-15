@@ -5,22 +5,11 @@ import ar from "../locales/ar.json";
 const BUNDLES = { en, ar };
 const RTL_LANGS = ["ar"];
 
-/** Read the browser's preferred language, falling back to English. */
-function detectLanguage() {
-  const nav = navigator.languages?.[0] || navigator.language || "en";
-  const base = nav.toLowerCase().split("-")[0];
-  return BUNDLES[base] ? base : "en";
-}
-
-/** Walk a dotted key path ("auth.sign_in") through a bundle. */
-function resolve(bundle, path) {
-  return path.split(".").reduce((acc, part) => acc?.[part], bundle);
-}
-
 const I18nContext = createContext(null);
 
 export function I18nProvider({ children }) {
-  const [lang, setLang] = useState(detectLanguage);
+  // Arabic is the default language on every load/refresh.
+  const [lang, setLang] = useState("ar");
 
   const dir = RTL_LANGS.includes(lang) ? "rtl" : "ltr";
 
@@ -30,6 +19,10 @@ export function I18nProvider({ children }) {
     document.documentElement.lang = lang;
     document.documentElement.dir = dir;
   }, [lang, dir]);
+
+  /** Walk a dotted key path ("auth.sign_in") through a bundle. */
+  const resolve = (bundle, path) =>
+    path.split(".").reduce((acc, part) => acc?.[part], bundle);
 
   /**
    * Translate a key. Supports {{placeholder}} interpolation:
@@ -60,6 +53,16 @@ export function I18nProvider({ children }) {
     (value) => {
       if (value == null) return "";
       if (typeof value === "string") return value;
+      if (Array.isArray(value)) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            "i18n.pick() called on an array — this field is likely already " +
+              "in the target language and shouldn't go through pick(). Skipping.",
+            value
+          );
+        }
+        return "";
+      }
       return value[lang] ?? value.en ?? "";
     },
     [lang]

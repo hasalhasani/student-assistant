@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useI18n } from "../lib/i18n";
 import { useStudy } from "../lib/study";
 
-export default function Dashboard({ onCreatePlan }) {
+export default function Dashboard({ onCreatePlan, onHome }) {
   const { t } = useI18n();
   const { plan, toggleSessionDone } = useStudy();
   const [tab, setTab] = useState("schedule");
@@ -10,6 +10,15 @@ export default function Dashboard({ onCreatePlan }) {
   if (!plan) {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
+        {onHome && (
+          <button
+            onClick={onHome}
+            className="btn-ghost mb-6 flex items-center gap-1.5 !px-3 !py-1.5 text-xs"
+          >
+            <i className="ti ti-home" aria-hidden="true" />
+            {t("nav.home")}
+          </button>
+        )}
         <i
           className="ti ti-calendar-off mb-3 block text-4xl"
           style={{ color: "var(--text-tertiary)" }}
@@ -44,6 +53,15 @@ export default function Dashboard({ onCreatePlan }) {
 
   return (
     <div className="mx-auto max-w-3xl">
+      {onHome && (
+        <button
+          onClick={onHome}
+          className="btn-ghost mb-3 flex w-fit items-center gap-1.5 !px-3 !py-1.5 text-xs"
+        >
+          <i className="ti ti-home" aria-hidden="true" />
+          {t("nav.home")}
+        </button>
+      )}
       <h2 className="page-title">{t("dashboard.title")}</h2>
       <p className="page-sub">{t("dashboard.sub")}</p>
 

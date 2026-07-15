@@ -7,13 +7,25 @@ const MODE_ICON = {
   chat: "ti-message-circle-2",
 };
 
-export default function History() {
+export default function History({ onHome }) {
   const { t, pick } = useI18n();
   const { history, historyLoading, historyError, isGuest } = useAuth();
+
+  const HomeButton = () =>
+    onHome ? (
+      <button
+        onClick={onHome}
+        className="btn-ghost mb-3 flex w-fit items-center gap-1.5 !px-3 !py-1.5 text-xs"
+      >
+        <i className="ti ti-home" aria-hidden="true" />
+        {t("nav.home")}
+      </button>
+    ) : null;
 
   if (isGuest) {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
+        <HomeButton />
         <i
           className="ti ti-user-off mb-3 block text-4xl"
           style={{ color: "var(--text-tertiary)" }}
@@ -29,6 +41,7 @@ export default function History() {
   if (historyLoading) {
     return (
       <div className="mx-auto max-w-2xl">
+        <HomeButton />
         <h2 className="page-title">{t("history.title")}</h2>
         <p className="page-sub">{t("history.loading")}</p>
         <div className="space-y-2">
@@ -47,6 +60,7 @@ export default function History() {
   if (historyError) {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
+        <HomeButton />
         <p className="text-sm" style={{ color: "var(--bad)" }}>
           {t("history.error")}
         </p>
@@ -59,6 +73,7 @@ export default function History() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <HomeButton />
       <h2 className="page-title">{t("history.title")}</h2>
       <p className="page-sub">{t("history.sub")}</p>
 

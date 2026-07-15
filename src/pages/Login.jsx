@@ -52,7 +52,11 @@ export default function Login() {
     >
       <div className="w-full max-w-sm">
         <div className="mb-4 flex justify-end">
-          <button onClick={toggleLang} className="btn-ghost text-xs">
+          <button
+            onClick={toggleLang}
+            className="btn-ghost text-xs"
+            style={{ fontFamily: "'Tajawal', sans-serif" }}
+          >
             {t("common.language")}
           </button>
         </div>

@@ -4,7 +4,7 @@
     "tagline": "Your AI study companion"
   },
   "nav": {
-    "assistant": "Assistant",
+    "home": "Home",
     "section_study": "Study",
     "section_plan": "Planning",
     "chat": "Sirāj (lesson)",
@@ -130,15 +130,22 @@
     "sessions": "Sessions",
     "questions": "Questions"
   },
-  "assistant": {
-    "welcome": "How can I help?",
-    "welcome_sub": "Ask me anything. For questions about a specific lesson, try Sirāj in the sidebar.",
-    "placeholder": "Send a message...",
-    "s1": "Explain photosynthesis simply",
-    "s2": "Help me plan my week",
-    "s3": "Give me a study tip",
-    "err_send": "Couldn't reach the assistant.",
-    "err_empty": "The assistant returned an empty reply.",
-    "not_configured": "Assistant webhook not configured — set VITE_N8N_ASSISTANT_URL."
+  "home": {
+    "eyebrow": "Your study hub",
+    "sub": "Everything you need for today, one tap away.",
+    "greeting_morning": "Good morning, {{name}}",
+    "greeting_afternoon": "Good afternoon, {{name}}",
+    "greeting_evening": "Good evening, {{name}}",
+    "study_mode": "Study Mode",
+    "study_mode_sub": "Chat with Sirāj, take a quiz, or drill your flashcards.",
+    "plan_mode": "Plan Mode",
+    "plan_mode_sub": "Check your dashboard or build a new study plan.",
+    "start": "Start",
+    "streak_label": "Day streak",
+    "todo_title": "Today's to-dos",
+    "view_plan": "View plan",
+    "view_history": "View your full history",
+    "no_plan": "You don't have a study plan yet.",
+    "todo_done": "All caught up — nice work!"
   }
 }

@@ -146,6 +146,141 @@ html[lang="en"] body {
   }
 }
 
+/* ===================================================================
+   HOME PAGE — mode widgets, streak, to-do list
+=================================================================== */
+@layer components {
+  .home-lamp {
+    @apply relative flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white;
+    background: linear-gradient(135deg, #ffd580, #ff9a3d);
+    box-shadow: 0 8px 20px rgba(255, 154, 61, 0.35);
+  }
+
+  .home-lamp-ring {
+    @apply absolute inset-0 rounded-full;
+    border: 2px solid rgba(255, 154, 61, 0.55);
+    animation: lamp-pulse 2.6s ease-out infinite;
+  }
+
+  .mode-card {
+    @apply relative cursor-pointer rounded-3xl p-5;
+    background: var(--surface-primary);
+    border: 1px solid var(--border-secondary);
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .mode-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px var(--shadow);
+    border-color: var(--brand-soft);
+  }
+
+  .mode-card-top {
+    @apply mb-3 flex items-center justify-between;
+  }
+
+  .mode-card-icon {
+    @apply flex h-11 w-11 items-center justify-center rounded-2xl text-xl text-white;
+    background: var(--mode-gradient);
+  }
+
+  .mode-card-chevron {
+    @apply flex h-7 w-7 items-center justify-center rounded-full text-xs transition-transform duration-300;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+  }
+
+  .mode-card-title {
+    @apply text-base font-bold;
+    color: var(--text-primary);
+  }
+
+  .mode-card-sub {
+    @apply mt-1 text-xs leading-relaxed;
+    color: var(--text-secondary);
+  }
+
+  /* Grid-rows trick lets the pill tray animate open/closed without a
+     fixed height — 0fr collapses it, 1fr reveals exactly its content. */
+  .mode-card-destinations {
+    display: grid;
+    transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
+  }
+
+  .mode-card-pills {
+    @apply mt-3 flex flex-wrap gap-2;
+  }
+
+  .pill-btn {
+    @apply flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium transition;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+  }
+  .pill-btn:hover {
+    background: var(--active-bg);
+    color: var(--brand-deep);
+  }
+
+  .mode-card-go {
+    @apply mt-4 flex items-center gap-1 text-xs font-bold transition-all;
+    color: var(--brand);
+  }
+  .mode-card-go:hover {
+    gap: 0.4rem;
+  }
+
+  .streak-widget {
+    @apply space-y-3;
+  }
+
+  .streak-flame {
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl text-white;
+    background: linear-gradient(135deg, #ff9a3d, #e8562f);
+    animation: flame-flicker 2.4s ease-in-out infinite;
+  }
+
+  .streak-week {
+    @apply flex gap-1.5;
+  }
+
+  .streak-dot {
+    @apply h-2 flex-1 rounded-full transition-colors;
+  }
+
+  .todo-item {
+    @apply flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-start transition;
+  }
+  .todo-item:hover {
+    background: var(--bg-secondary);
+  }
+
+  .todo-check {
+    @apply block h-4 w-4 shrink-0 rounded-full;
+    border: 1.5px solid var(--input-border);
+  }
+}
+
+@keyframes lamp-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes flame-flicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.08) rotate(-3deg);
+  }
+}
+
 /* Visible keyboard focus everywhere. */
 :focus-visible {
   outline: 2px solid var(--brand);
@@ -172,5 +307,12 @@ html[lang="en"] body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .streak-flame {
+    animation: none;
+  }
+  .home-lamp-ring {
+    animation: none;
+    display: none;
   }
 }

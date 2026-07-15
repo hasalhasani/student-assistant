@@ -11,7 +11,8 @@ import LessonPicker from "../components/LessonPicker";
  * voice is recorded with MediaRecorder and posted as base64 to the same
  * webhook, which transcribes, answers, and can speak the reply back.
  */
-export default function Chat() {
+
+export default function Chat({ onHome }) {
   const { t, lang, pick } = useI18n();
   const { token } = useAuth();
   const { lesson, sessionId } = useStudy();
@@ -146,6 +147,15 @@ export default function Chat() {
   if (!started) {
     return (
       <div className="h-full min-h-0 overflow-y-auto">
+        {onHome && (
+          <button
+            onClick={onHome}
+            className="btn-ghost mb-3 flex items-center gap-1.5 !px-3 !py-1.5 text-xs"
+          >
+            <i className="ti ti-home" aria-hidden="true" />
+            {t("nav.home")}
+          </button>
+        )}
         <LessonPicker
           onStart={async () => {
             await api.ensureSession({
@@ -170,6 +180,15 @@ export default function Chat() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {onHome && (
+        <button
+          onClick={onHome}
+          className="btn-ghost mb-2 flex w-fit items-center gap-1.5 !px-3 !py-1.5 text-xs"
+        >
+          <i className="ti ti-home" aria-hidden="true" />
+          {t("nav.home")}
+        </button>
+      )}
       <div
         className="mb-3 flex items-center justify-between border-b pb-3"
         style={{ borderColor: "var(--border-secondary)" }}
@@ -197,7 +216,7 @@ export default function Chat() {
             className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className="max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed"
+              className="max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm leading-relaxed"
               style={bubbleStyle(m.role)}
             >
               {m.text}
@@ -205,9 +224,25 @@ export default function Chat() {
           </div>
         ))}
         {busy && (
-          <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-            •••
-          </p>
+          <div className="flex justify-start">
+            <div
+              className="rounded-2xl px-4 py-3"
+              style={{ background: "var(--msg-bot-bg)" }}
+            >
+              <span className="flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="h-1.5 w-1.5 animate-pulse rounded-full"
+                    style={{
+                      background: "var(--text-tertiary)",
+                      animationDelay: `${i * 0.15}s`,
+                    }}
+                  />
+                ))}
+              </span>
+            </div>
+          </div>
         )}
       </div>
 

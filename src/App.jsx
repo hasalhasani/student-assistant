@@ -6,7 +6,7 @@ import { USE_MOCKS } from "./lib/endpoints";
 import DevPanel from "./components/DevPanel";
 
 // One chunk per feature — fetched on first visit, not on load.
-const Assistant = lazy(() => import("./pages/Assistant"));
+const Home = lazy(() => import("./pages/Home"));
 const Chat = lazy(() => import("./pages/Chat"));
 const Quiz = lazy(() => import("./pages/Quiz"));
 const Flashcards = lazy(() => import("./pages/Flashcards"));
@@ -19,9 +19,7 @@ const NAV = [
   {
     section: "nav.section_study",
     items: [
-      // The general assistant — the landing page.
-      { id: "assistant", icon: "ti-sparkles", label: "nav.assistant" },
-      // Sirāj — the lesson-bound tutor. Same idea, different scope.
+      // Sirāj — the lesson-bound tutor.
       { id: "chat", icon: "ti-message-circle-2", label: "nav.chat" },
       { id: "quiz", icon: "ti-list-check", label: "nav.mcq" },
       { id: "flashcards", icon: "ti-cards", label: "nav.flashcards" },
@@ -56,9 +54,21 @@ export default function App() {
   const { user, signOut, isGuest, history, historyLoading } = useAuth();
   const { plan, setPlan } = useStudy();
 
-  const [page, setPage] = useState("assistant"); // the general chat is the landing page
+  const [page, setPage] = useState("home"); // Home is the landing page
   const [theme, setTheme] = useState("light");
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Which sidebar panel is showing — "study" (المراجعة) or "plan" (التخطيط).
+  // Only one renders at a time; the other stays hidden until picked.
+  const sectionForPage = (id) => NAV.findIndex((g) => g.items.some((it) => it.id === id));
+  const [navSection, setNavSection] = useState(0);
+
+  // Keep the visible panel in sync with whatever page is active — e.g.
+  // navigating to "history" from Home should reveal the التخطيط panel.
+  useEffect(() => {
+    const idx = sectionForPage(page);
+    if (idx !== -1) setNavSection(idx);
+  }, [page]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -84,19 +94,21 @@ export default function App() {
     );
   }
 
-  const PAGES = {
-    assistant: <Assistant />,
-    chat: <Chat />,
-    quiz: <Quiz />,
-    flashcards: <Flashcards />,
-    dashboard: <Dashboard onCreatePlan={() => setPage("planner")} />,
-    planner: <Planner onDone={() => setPage("dashboard")} />,
-    history: <History />,
-  };
-
   const go = (id) => {
     setPage(id);
     setMenuOpen(false);
+  };
+
+  const goHome = () => go("home");
+
+  const PAGES = {
+    home: <Home onNavigate={go} />,
+    chat: <Chat onHome={goHome} />,
+    quiz: <Quiz onHome={goHome} />,
+    flashcards: <Flashcards onHome={goHome} />,
+    dashboard: <Dashboard onCreatePlan={() => setPage("planner")} onHome={goHome} />,
+    planner: <Planner onDone={() => setPage("dashboard")} onHome={goHome} />,
+    history: <History onHome={goHome} />,
   };
 
   return (
@@ -113,30 +125,38 @@ export default function App() {
         }}
       >
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden"
-            aria-label="Menu"
-          >
-            <i className="ti ti-menu-2 text-xl" aria-hidden="true" />
-          </button>
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-white"
-            style={{ background: "var(--brand)" }}
-          >
-            <i className="ti ti-school" aria-hidden="true" />
-          </div>
-          <div className="leading-tight">
-            <div
-              className="text-[15px] font-bold"
-              style={{ color: "var(--brand-deep)" }}
+          {page !== "home" && (
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="md:hidden"
+              aria-label="Menu"
             >
-              {t("app.name")}
+              <i className="ti ti-menu-2 text-xl" aria-hidden="true" />
+            </button>
+          )}
+          <button
+            onClick={() => go("home")}
+            className="flex items-center gap-3 text-start"
+            aria-label={t("nav.home")}
+          >
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white"
+              style={{ background: "var(--brand)" }}
+            >
+              <i className="ti ti-school" aria-hidden="true" />
             </div>
-            <div className="text-[11px]" style={{ color: "var(--text-secondary)" }}>
-              {user.name || t("common.guest")}
+            <div className="leading-tight">
+              <div
+                className="text-[15px] font-bold"
+                style={{ color: "var(--brand-deep)" }}
+              >
+                {t("app.name")}
+              </div>
+              <div className="text-[11px]" style={{ color: "var(--text-secondary)" }}>
+                {user.name || t("common.guest")}
+              </div>
             </div>
-          </div>
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -164,7 +184,11 @@ export default function App() {
               {t("common.demo_mode")}
             </span>
           )}
-          <button onClick={toggleLang} className="btn-ghost !px-3 !py-1.5 text-xs">
+          <button
+            onClick={toggleLang}
+            className="btn-ghost !px-3 !py-1.5 text-xs"
+            style={{ fontFamily: "'Tajawal', sans-serif" }}
+          >
             {t("common.language")}
           </button>
           <button
@@ -190,63 +214,116 @@ export default function App() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* ---------- sidebar ---------- */}
-        <aside
-          className={`${
-            menuOpen ? "flex" : "hidden"
-          } w-52 shrink-0 flex-col border-e p-3 md:flex`}
-          style={{
-            background: "var(--surface-secondary)",
-            borderColor: "var(--border-secondary)",
-          }}
-        >
-          {NAV.map((group) => (
-            <div key={group.section} className="mb-4">
-              <div
-                className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wide"
-                style={{ color: "var(--text-tertiary)" }}
-              >
-                {t(group.section)}
-              </div>
-              {group.items.map((item) => {
-                const active = page === item.id;
+        {/* ---------- sidebar ----------
+            Hidden on Home: Home carries its own navigation via the mode
+            widgets, so the nav list only reappears once the person is
+            inside a feature. */}
+        {page !== "home" && (
+          <aside
+            className={`${
+              menuOpen ? "flex" : "hidden"
+            } w-56 shrink-0 flex-col gap-3 overflow-y-auto border-e p-3 md:flex`}
+            style={{
+              background: "var(--surface-secondary)",
+              borderColor: "var(--border-secondary)",
+            }}
+          >
+            {/* Tab switcher — picks which of the two panels below is
+                visible. Only one of المراجعة / التخطيط shows at a time. */}
+            <div
+              className="flex gap-1 rounded-2xl border p-1"
+              style={{
+                background: "var(--surface-primary)",
+                borderColor: "var(--border-secondary)",
+              }}
+            >
+              {NAV.map((group, gi) => {
+                const accent = gi === 0 ? "var(--brand)" : "#0f6e56";
+                const active = navSection === gi;
                 return (
                   <button
-                    key={item.id}
-                    onClick={() => go(item.id)}
-                    className="mb-1 flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition"
+                    key={group.section}
+                    onClick={() => setNavSection(gi)}
+                    className="flex-1 rounded-xl px-2 py-2 text-[11px] font-bold uppercase tracking-wide transition"
                     style={{
                       background: active ? "var(--accent)" : "transparent",
-                      color: active ? "var(--brand-deep)" : "var(--text-secondary)",
-                      borderColor: active ? "var(--brand-soft)" : "transparent",
-                      fontWeight: active ? 700 : 500,
+                      color: active ? accent : "var(--text-tertiary)",
                     }}
                   >
-                    <i className={`ti ${item.icon} text-lg`} aria-hidden="true" />
-                    {t(item.label)}
+                    {t(group.section)}
                   </button>
                 );
               })}
             </div>
-          ))}
 
-          {isGuest && (
-            <p
-              className="mt-auto px-1 text-[11px] leading-relaxed"
-              style={{ color: "var(--text-tertiary)" }}
-            >
-              {t("auth.guest_note")}
-            </p>
-          )}
-        </aside>
+            {/* Only the selected group's items render — switching tabs
+                swaps the panel instead of stacking both. */}
+            {(() => {
+              const group = NAV[navSection];
+              const accent = navSection === 0 ? "var(--brand)" : "#0f6e56";
+              return (
+                <div
+                  key={group.section}
+                  className="rounded-2xl border p-3"
+                  style={{
+                    background: "var(--surface-primary)",
+                    borderColor: "var(--border-secondary)",
+                    boxShadow: "0 1px 4px var(--shadow)",
+                  }}
+                >
+                  <div className="mb-2.5 flex items-center gap-2 px-1">
+                    <span
+                      className="h-1.5 w-1.5 shrink-0 rounded-full"
+                      style={{ background: accent }}
+                      aria-hidden="true"
+                    />
+                    <span
+                      className="text-[11px] font-bold uppercase tracking-wide"
+                      style={{ color: "var(--text-tertiary)" }}
+                    >
+                      {t(group.section)}
+                    </span>
+                  </div>
+                  {group.items.map((item) => {
+                    const active = page === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => go(item.id)}
+                        className="mb-1 flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition last:mb-0"
+                        style={{
+                          background: active ? "var(--accent)" : "transparent",
+                          color: active ? "var(--brand-deep)" : "var(--text-secondary)",
+                          borderColor: active ? "var(--brand-soft)" : "transparent",
+                          fontWeight: active ? 700 : 500,
+                        }}
+                      >
+                        <i className={`ti ${item.icon} text-lg`} aria-hidden="true" />
+                        {t(item.label)}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })()}
 
-        {/* ---------- main ---------- */}
+            {isGuest && (
+              <p
+                className="mt-auto px-1 text-[11px] leading-relaxed"
+                style={{ color: "var(--text-tertiary)" }}
+              >
+                {t("auth.guest_note")}
+              </p>
+            )}
+          </aside>
+        )}
+
         {/* ---------- main ----------
-            Chat pages manage their own scrolling, so they get a fixed-height
-            flex container instead of the page-level overflow used elsewhere. */}
+            Chat manages its own scrolling, so it gets a fixed-height flex
+            container instead of the page-level overflow used elsewhere. */}
         <main
           className={
-            page === "assistant" || page === "chat"
+            page === "chat"
               ? "flex flex-1 flex-col overflow-hidden p-6 pb-14"
               : "flex-1 overflow-y-auto p-6 pb-14"
           }
